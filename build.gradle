@@ -42,14 +42,13 @@ test {
 }
 
 jlink {
-    imageZip = project.file("${rootProject.layout.buildDirectory.get().asFile}/distributions/app-${javafx.platform.classifier}.zip")
     options = ['--strip-debug', '--no-header-files', '--no-man-pages']
 
     launcher {
         name = 'app'
     }
-}
 
-jlinkZip {
-    group = 'distribution'
+    jpackage {
+        installerType = 'deb'
+    }
 }

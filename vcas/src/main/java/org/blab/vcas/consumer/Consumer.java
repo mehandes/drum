@@ -1,4 +1,4 @@
-package org.blab.vcas;
+package org.blab.vcas.consumer;
 
 import java.util.Set;
 
@@ -7,14 +7,16 @@ public interface Consumer {
 
   void unsubscribe();
 
+  void unsubscribe(Set<String> topics);
+
   void close();
 
   interface Callback {
-    void onEvent(Event event);
+    void onEvent(ConsumerEvent event);
 
-    void onConnected();
+    void onConnectionEstablished();
 
-    void onDisconnected();
+    void onConnectionLost();
 
     void onError(Throwable e);
   }

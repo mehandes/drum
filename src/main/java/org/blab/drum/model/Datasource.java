@@ -2,45 +2,32 @@ package org.blab.drum.model;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.blab.vcas.Consumer;
-import org.blab.vcas.Event;
-import org.blab.vcas.VcasConsumer;
+import org.blab.vcas.consumer.Consumer;
+import org.blab.vcas.consumer.ConsumerEvent;
+import org.blab.vcas.consumer.ConsumerProperties;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Datasource implements Consumer.Callback {
-  private static final int VCAS_MESSAGE_MAX_SIZE = 2048;
-
   private static Datasource instance;
+
+  private final ObjectProperty<State> state;
+  private final Map<String, Channel> channels;
+
+  private Datasource(
+      DatasourceProperties datasourceProperties, ConsumerProperties consumerProperties) {
+    this.state = new SimpleObjectProperty<>(State.DISCONNECTED);
+    this.channels = new HashMap<>(datasourceProperties.topicNames().size() / 2);
+  }
 
   public static Datasource getInstance() {
     return instance;
   }
 
-  public static void createInstance(DatasourceConfiguration configuration) throws IOException {
-    instance = new Datasource(configuration);
-  }
-
-  private final ObjectProperty<State> state;
-  private final Map<String, Channel> channels;
-
-  public Datasource(DatasourceConfiguration configuration) throws IOException {
-    this.state = new SimpleObjectProperty<>(State.DISCONNECTED);
-    this.channels = new HashMap<>(configuration.channelNames().size() / 2);
-
-    for (String topic : configuration.channelNames())
-      channels.put(topic, new Channel(configuration.persistenceRange()));
-
-    new VcasConsumer(
-            AsynchronousSocketChannel.open(),
-            ByteBuffer.allocate(VCAS_MESSAGE_MAX_SIZE),
-            configuration.address())
-        .withCallback(this)
-        .subscribe(configuration.channelNames());
+  public static void createInstance(
+      DatasourceProperties datasourceProperties, ConsumerProperties consumerProperties) {
+    instance = new Datasource(datasourceProperties, consumerProperties);
   }
 
   public ObjectProperty<State> getStateProperty() {
@@ -52,18 +39,18 @@ public class Datasource implements Consumer.Callback {
   }
 
   @Override
-  public void onEvent(Event event) {
+  public void onEvent(ConsumerEvent event) {
     // TODO Process incoming event
   }
 
   @Override
-  public void onConnected() {
-    this.state.set(State.CONNECTED);
+  public void onConnectionEstablished() {
+    state.set(State.CONNECTED);
   }
 
   @Override
-  public void onDisconnected() {
-    this.state.set(State.DISCONNECTED);
+  public void onConnectionLost() {
+    state.set(State.DISCONNECTED);
   }
 
   @Override
