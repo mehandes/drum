@@ -57,7 +57,10 @@ public class VcasConsumer implements Consumer {
   @Override
   public void subscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.stream().filter(t -> !subscriptions.contains(t)).forEach(this::subscribe);
+    topics.stream().filter(t -> !subscriptions.contains(t)).forEach(t -> {
+      subscriptions.add(t);
+      subscribe(t);
+    });
   }
 
   private void subscribe(String topic) {
@@ -73,7 +76,7 @@ public class VcasConsumer implements Consumer {
   @Override
   public void unsubscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.stream().filter(t -> subscriptions.contains(t)).forEach(t -> {
+    topics.stream().filter(subscriptions::contains).forEach(t -> {
       subscriptions.remove(t);
       unsubscribe(t);
     });
@@ -104,7 +107,7 @@ public class VcasConsumer implements Consumer {
     @Override
     public void completed(Void result, ConsumerProperties properties) {
       executor.submit(callback::onConnectionEstablished);
-      subscribe(subscriptions);
+      subscriptions.forEach(VcasConsumer.this::subscribe);
       socket.read(messageBuffer, properties, readHandler);
     }
 
@@ -129,7 +132,7 @@ public class VcasConsumer implements Consumer {
   }
 
   private class ReadHandler implements CompletionHandler<Integer, ConsumerProperties> {
-    private ByteBuffer message;
+    private final ByteBuffer message;
 
     ReadHandler(int maxMessageSize) {
       message = ByteBuffer.allocate(maxMessageSize);
@@ -183,7 +186,7 @@ public class VcasConsumer implements Consumer {
   private static class WriteHandler implements CompletionHandler<Integer, String> {
     @Override
     public void completed(Integer integer, String request) {
-      logger.debug("Request created: {}", request);
+      logger.debug("Request sent: {}", request);
     }
 
     @Override

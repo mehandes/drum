@@ -15,10 +15,10 @@
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" spacing="10.0">
     <HBox fillHeight="false">
         <AnchorPane HBox.hgrow="ALWAYS">
-            <Label fx:id="hiveStatusLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Disconnected"
+            <Label fx:id="vcasStatusLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Disconnected"
                    AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <graphic>
-                    <Circle fx:id="hiveStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK" strokeType="INSIDE"/>
+                    <Circle fx:id="vcasStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK" strokeType="INSIDE"/>
                 </graphic>
                 <padding>
                     <Insets bottom="5.0" right="5.0" top="10.0"/>
