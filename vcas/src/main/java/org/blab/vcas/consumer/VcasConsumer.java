@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.blab.vcas.BrokerNotAvailableException;
 import org.blab.vcas.MessageFormatException;
+import org.blab.vcas.UnknownServerException;
+import org.blab.vcas.UnknownTopicException;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -154,7 +156,15 @@ public class VcasConsumer implements Consumer {
 
       try {
         var event = ConsumerEvent.parse(msg);
-        executor.submit(() -> callback.onEvent(event));
+
+        if (event.value().equals("error")) {
+          if (event.description().contains("not found"))
+            executor.submit(() -> callback.onError(new UnknownTopicException("Topic not exists: " + event.topic(), null)));
+          else
+            executor.submit(() -> callback.onError(new UnknownServerException(event.description(), null)));
+        } else
+          executor.submit(() -> callback.onEvent(event));
+
         message.clear();
       } catch (Exception e) {
         logger.error(e);
