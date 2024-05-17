@@ -34,7 +34,7 @@ javafx {
 
 application {
     mainModule = 'org.blab.drum'
-    mainClass = 'org.blab.drum.HelloApplication'
+    mainClass = 'org.blab.drum.Drum'
 }
 
 test {

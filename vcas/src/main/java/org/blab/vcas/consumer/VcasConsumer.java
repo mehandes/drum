@@ -3,6 +3,7 @@ package org.blab.vcas.consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.blab.vcas.BrokerNotAvailableException;
+import org.blab.vcas.MessageFormatException;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -35,7 +36,7 @@ public class VcasConsumer implements Consumer {
     try {
       this.executor = Executors.newVirtualThreadPerTaskExecutor();
       this.connectionHandler = new ConnectionHandler();
-      this.readHandler = new ReadHandler();
+      this.readHandler = new ReadHandler(properties.maxMessageSize());
       this.writeHandler = new WriteHandler();
 
       this.callback = callback;
@@ -54,8 +55,7 @@ public class VcasConsumer implements Consumer {
   @Override
   public void subscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.removeAll(subscriptions);
-    if (subscriptions.addAll(topics)) topics.forEach(this::subscribe);
+    topics.stream().filter(t -> !subscriptions.contains(t)).forEach(this::subscribe);
   }
 
   private void subscribe(String topic) {
@@ -71,9 +71,10 @@ public class VcasConsumer implements Consumer {
   @Override
   public void unsubscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.retainAll(subscriptions);
-    subscriptions.removeAll(topics);
-    topics.forEach(this::unsubscribe);
+    topics.stream().filter(t -> subscriptions.contains(t)).forEach(t -> {
+      subscriptions.remove(t);
+      unsubscribe(t);
+    });
   }
 
   private void unsubscribe(String topic) {
@@ -108,7 +109,6 @@ public class VcasConsumer implements Consumer {
     @Override
     public void failed(Throwable t, ConsumerProperties properties) {
       logger.error(t);
-      executor.submit(callback::onConnectionLost);
 
       if (t instanceof ConnectException)
         executor.submit(
@@ -127,9 +127,39 @@ public class VcasConsumer implements Consumer {
   }
 
   private class ReadHandler implements CompletionHandler<Integer, ConsumerProperties> {
+    private ByteBuffer message;
+
+    ReadHandler(int maxMessageSize) {
+      message = ByteBuffer.allocate(maxMessageSize);
+    }
+
     @Override
     public void completed(Integer result, ConsumerProperties properties) {
-      // TODO Extract event
+      for (int i = 0; i < result; ++i)
+        if (messageBuffer.get(i) == '\n') submitMessage();
+        else {
+          if (!message.hasRemaining()) {
+            executor.submit(() -> callback.onError(new MessageFormatException("Message overflow: " + message.toString())));
+            message.clear();
+          }
+
+          message.put(messageBuffer.get(i));
+        }
+
+      socket.read(messageBuffer.clear(), properties, this);
+    }
+
+    private void submitMessage() {
+      var msg = new String(Arrays.copyOf(message.array(), message.position()));
+
+      try {
+        var event = ConsumerEvent.parse(msg);
+        executor.submit(() -> callback.onEvent(event));
+        message.clear();
+      } catch (Exception e) {
+        logger.error(e);
+        executor.submit(() -> callback.onError(e));
+      }
     }
 
     @Override
