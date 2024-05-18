@@ -10,5 +10,7 @@ module org.blab.drum {
   requires jdk.compiler;
 
   opens org.blab.drum to javafx.fxml;
+
   exports org.blab.drum;
+  exports org.blab.drum.model;
 }

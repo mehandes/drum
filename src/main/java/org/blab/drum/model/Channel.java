@@ -5,9 +5,13 @@ import java.util.concurrent.TimeUnit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** Channel for single VCAS topic which controls state and data. */
 public class Channel {
+  private static final Logger logger = LogManager.getLogger(Channel.class);
+
   private final String name;
   private final ObjectProperty<State> state;
   private final ObservableQueue<Double> data;
@@ -36,6 +40,7 @@ public class Channel {
     data.add(v);
 
     if (!normalRange.contains(v)) state.setValue(State.CRITICAL);
+    else state.setValue(State.NORMAL);
   }
 
   public String getName() {
@@ -53,6 +58,8 @@ public class Channel {
   private void updateState() {
     if (isDataUpdated) isDataUpdated = false;
     else state.setValue(State.IDLE);
+
+    logger.debug("Updating state for {}: {}", name, state.getValue());
   }
 
   public enum State {

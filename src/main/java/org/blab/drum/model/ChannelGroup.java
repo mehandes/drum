@@ -2,11 +2,15 @@ package org.blab.drum.model;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 /** Collection of related Channels with bounded states. */
 public class ChannelGroup {
+  private static final Logger logger = LogManager.getLogger(ChannelGroup.class);
+
   private final String name;
   private final ObjectProperty<State> state;
   private final Map<String, Channel> channels;
@@ -23,21 +27,26 @@ public class ChannelGroup {
   public void addChannel(Channel channel) {
     if (channels.containsKey(channel.getName())) return;
     channels.put(channel.getName(), channel);
-    channel.getObservableState().addListener((obs, o, n) -> {
-      switch (o) {
-        case CRITICAL -> criticalCount--;
-        case IDLE -> idleCount--;
-      }
+    channel
+        .getObservableState()
+        .addListener(
+            (obs, o, n) -> {
+              switch (o) {
+                case CRITICAL -> criticalCount--;
+                case IDLE -> idleCount--;
+              }
 
-      switch (n) {
-        case CRITICAL -> criticalCount++;
-        case IDLE -> idleCount++;
-      }
+              switch (n) {
+                case CRITICAL -> criticalCount++;
+                case IDLE -> idleCount++;
+              }
 
-      if (criticalCount == 0 && idleCount == 0) state.setValue(State.NORMAL);
-      else if (criticalCount >= idleCount) state.setValue(State.CRITICAL);
-      else state.setValue(State.IDLE);
-    });
+              if (criticalCount == 0 && idleCount == 0) state.setValue(State.NORMAL);
+              else if (criticalCount >= idleCount) state.setValue(State.CRITICAL);
+              else state.setValue(State.IDLE);
+
+              logger.debug("Updated state for {}: {}", name, state.getValue());
+            });
   }
 
   public String getName() {

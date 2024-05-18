@@ -10,15 +10,16 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
 
-
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" spacing="10.0">
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
     <HBox fillHeight="false">
         <AnchorPane HBox.hgrow="ALWAYS">
             <Label fx:id="vcasStatusLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Disconnected"
                    AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <graphic>
-                    <Circle fx:id="vcasStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK" strokeType="INSIDE"/>
+                    <Circle fx:id="vcasStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK"
+                            strokeType="INSIDE"/>
                 </graphic>
                 <padding>
                     <Insets bottom="5.0" right="5.0" top="10.0"/>
@@ -26,7 +27,7 @@
             </Label>
         </AnchorPane>
     </HBox>
-    <GridPane alignment="CENTER" gridLinesVisible="true" VBox.vgrow="ALWAYS">
+    <GridPane fx:id="grid" alignment="CENTER" gridLinesVisible="true" VBox.vgrow="ALWAYS">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -36,29 +37,40 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
         </rowConstraints>
         <AnchorPane prefHeight="200.0" prefWidth="200.0">
-            <Button mnemonicParsing="false" style="-fx-background-color: #0EAD69;" text="1F1"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
+            <Button id="VEPP/CCD/1M1L" mnemonicParsing="false" style="-fx-background-color: #0EAD69;" text="1M1L"
+                    textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font size="16.0"/>
+                </font>
             </Button>
         </AnchorPane>
         <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
-            <Button mnemonicParsing="false" style="-fx-background-color: #044B7F;" text="1D1" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
+            <Button id="VEPP/CCD/1M2L" mnemonicParsing="false" style="-fx-background-color: #044B7F;" text="1M2L"
+                    textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font size="16.0"/>
+                </font>
             </Button>
         </AnchorPane>
         <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
-            <Button mnemonicParsing="false" style="-fx-background-color: #0EAD69;" text="1F2"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
+            <Button id="VEPP/CCD/1M1R" mnemonicParsing="false" style="-fx-background-color: #0EAD69;" text="1M1R"
+                    textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font size="16.0"/>
+                </font>
             </Button>
         </AnchorPane>
         <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-            <Button mnemonicParsing="false" style="-fx-background-color: #A41623;" text="1D2" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
+            <Button id="VEPP/CCD/1M2R" mnemonicParsing="false" style="-fx-background-color: #A41623;" text="1M2R"
+                    textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font size="16.0"/>
+                </font>
             </Button>
         </AnchorPane>
     </GridPane>
 </VBox>
-

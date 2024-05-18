@@ -10,10 +10,20 @@ import java.util.concurrent.Executors;
 
 public class DrumService extends VcasService {
   private static final Logger logger = LogManager.getLogger(DrumService.class);
+  private static DrumService instance;
+
+  public static void init(DrumProperties properties) {
+    instance = new DrumService(properties);
+  }
+
+  public static DrumService getInstance() {
+    if (instance == null) throw new IllegalStateException("Uninitialized DrumService");
+    return instance;
+  }
 
   private final Map<String, ChannelGroup> groups;
 
-  public DrumService(DrumProperties properties) {
+  private DrumService(DrumProperties properties) {
     super(properties.consumerProperties());
 
     var pool = Executors.newScheduledThreadPool(1);

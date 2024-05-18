@@ -30,6 +30,7 @@ public class VcasConsumer implements Consumer {
   private final CompletionHandler<Integer, String> writeHandler;
 
   private final Set<String> subscriptions;
+  private final Queue<String> requests;
   private boolean isClosed = false;
 
   public VcasConsumer(ConsumerProperties properties, Callback callback) {
@@ -46,6 +47,7 @@ public class VcasConsumer implements Consumer {
       this.socket = AsynchronousSocketChannel.open();
 
       this.subscriptions = new HashSet<>();
+      this.requests = new LinkedList<>();
 
       this.socket.connect(properties.address(), properties, connectionHandler);
     } catch (IOException e) {
@@ -57,15 +59,18 @@ public class VcasConsumer implements Consumer {
   @Override
   public void subscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.stream().filter(t -> !subscriptions.contains(t)).forEach(t -> {
-      subscriptions.add(t);
-      subscribe(t);
-    });
+    topics.stream()
+        .filter(t -> !subscriptions.contains(t))
+        .forEach(
+            t -> {
+              subscriptions.add(t);
+              subscribe(t);
+            });
   }
 
   private void subscribe(String topic) {
     String request = String.format("name:%s|method:subscr\n", topic);
-    socket.write(ByteBuffer.wrap(request.getBytes()), request, writeHandler);
+    request(request);
   }
 
   @Override
@@ -76,15 +81,25 @@ public class VcasConsumer implements Consumer {
   @Override
   public void unsubscribe(Set<String> topics) {
     if (isClosed) throw new IllegalStateException();
-    topics.stream().filter(subscriptions::contains).forEach(t -> {
-      subscriptions.remove(t);
-      unsubscribe(t);
-    });
+    topics.stream()
+        .filter(subscriptions::contains)
+        .forEach(
+            t -> {
+              subscriptions.remove(t);
+              unsubscribe(t);
+            });
   }
 
   private void unsubscribe(String topic) {
     String request = String.format("name:%s|method:free\n", topic);
-    socket.write(ByteBuffer.wrap(request.getBytes()), request, writeHandler);
+    request(request);
+  }
+
+  private void request(String request) {
+    if (requests.isEmpty())
+      socket.write(ByteBuffer.wrap(request.getBytes()), request, writeHandler);
+
+    requests.add(request);
   }
 
   @Override
@@ -144,7 +159,10 @@ public class VcasConsumer implements Consumer {
         if (messageBuffer.get(i) == '\n') submitMessage();
         else {
           if (!message.hasRemaining()) {
-            executor.submit(() -> callback.onError(new MessageFormatException("Message overflow: " + message.toString())));
+            executor.submit(
+                () ->
+                    callback.onError(
+                        new MessageFormatException("Message overflow: " + message.toString())));
             message.clear();
           }
 
@@ -162,11 +180,14 @@ public class VcasConsumer implements Consumer {
 
         if (event.value().equals("error")) {
           if (event.description().contains("not found"))
-            executor.submit(() -> callback.onError(new UnknownTopicException("Topic not exists: " + event.topic(), null)));
+            executor.submit(
+                () ->
+                    callback.onError(
+                        new UnknownTopicException("Topic not exists: " + event.topic(), null)));
           else
-            executor.submit(() -> callback.onError(new UnknownServerException(event.description(), null)));
-        } else
-          executor.submit(() -> callback.onEvent(event));
+            executor.submit(
+                () -> callback.onError(new UnknownServerException(event.description(), null)));
+        } else executor.submit(() -> callback.onEvent(event));
 
         message.clear();
       } catch (Exception e) {
@@ -183,15 +204,23 @@ public class VcasConsumer implements Consumer {
     }
   }
 
-  private static class WriteHandler implements CompletionHandler<Integer, String> {
+  private class WriteHandler implements CompletionHandler<Integer, String> {
     @Override
     public void completed(Integer integer, String request) {
       logger.debug("Request sent: {}", request);
+      next();
     }
 
     @Override
     public void failed(Throwable t, String request) {
       logger.error("Request failed: {}", request);
+      next();
+    }
+
+    private void next() {
+      requests.poll();
+      String next = requests.peek();
+      if (next != null) socket.write(ByteBuffer.wrap(next.getBytes()), next, this);
     }
   }
 }
