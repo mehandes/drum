@@ -54,7 +54,7 @@ public class DrumSceneController implements SceneController {
         (event) -> {
           try {
             Stage stage = new Stage();
-            stage.setTitle(group.getName());
+            stage.setTitle("Drum - " + group.getName());
             stage.setScene(SceneController.newGroupScene(stage, group));
             stage.show();
           } catch (IOException e) {
@@ -62,7 +62,7 @@ public class DrumSceneController implements SceneController {
           }
         });
 
-    logger.debug("Button bounded: {}", button.getText());
+    logger.debug("Button bounded: {}", group.getName());
   }
 
   private void updateVcasIndicator(DrumService service) {

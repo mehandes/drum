@@ -27,6 +27,7 @@ public class ChannelGroup {
   public void addChannel(Channel channel) {
     if (channels.containsKey(channel.getName())) return;
     channels.put(channel.getName(), channel);
+    idleCount++;
     channel
         .getObservableState()
         .addListener(

@@ -45,7 +45,7 @@ jlink {
     options = ['--strip-debug', '--no-header-files', '--no-man-pages']
 
     launcher {
-        name = 'app'
+        name = 'drum'
     }
 
     jpackage {

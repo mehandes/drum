@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.blab.vcas.consumer.ConsumerEvent;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -64,12 +66,14 @@ public class DrumService extends VcasService {
 
   @Override
   public void onEvent(ConsumerEvent event) {
-    logger.debug("Received event {}", event);
-
     groups
         .get(getGroupNameFromTopic(event.topic()))
         .getChannelByName(getChannelNameFromTopic(event.topic()))
-        .addValue(Double.parseDouble(event.value()));
+        .addValue(Double.parseDouble(event.value()), parseTimestamp(event.timestamp()));
+  }
+
+  private String parseTimestamp(Long timestamp) {
+    return new SimpleDateFormat("HH:mm:ss").format(new Date(timestamp));
   }
 
   private String getGroupNameFromTopic(String topic) {

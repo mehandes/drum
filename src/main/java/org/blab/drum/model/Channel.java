@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.chart.XYChart;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,7 +15,7 @@ public class Channel {
 
   private final String name;
   private final ObjectProperty<State> state;
-  private final ObservableQueue<Double> data;
+  private final ObservableQueue<XYChart.Data<String, Number>> data;
   private final Range normalRange;
 
   private boolean isDataUpdated;
@@ -35,11 +36,11 @@ public class Channel {
     pool.scheduleAtFixedRate(this::updateState, updateDelay, updateDelay, TimeUnit.SECONDS);
   }
 
-  public void addValue(Double v) {
+  public void addValue(Double value, String time) {
     isDataUpdated = true;
-    data.add(v);
+    data.offer(new XYChart.Data<>(time, value));
 
-    if (!normalRange.contains(v)) state.setValue(State.CRITICAL);
+    if (!normalRange.contains(value)) state.setValue(State.CRITICAL);
     else state.setValue(State.NORMAL);
   }
 
@@ -47,7 +48,7 @@ public class Channel {
     return name;
   }
 
-  public ObservableQueue<Double> getObservableData() {
+  public ObservableQueue<XYChart.Data<String, Number>> getObservableData() {
     return data;
   }
 
@@ -58,8 +59,6 @@ public class Channel {
   private void updateState() {
     if (isDataUpdated) isDataUpdated = false;
     else state.setValue(State.IDLE);
-
-    logger.debug("Updating state for {}: {}", name, state.getValue());
   }
 
   public enum State {

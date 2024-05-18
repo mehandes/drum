@@ -32,17 +32,21 @@ public class Drum extends Application {
     var properties =
         new DrumProperties(
             Set.of(
-                "VEPP/CCD/1M1L/sigma_x",
-                "VEPP/CCD/1M1L/sigma_z",
-                "VEPP/CCD/1M1R/sigma_x",
-                "VEPP/CCD/1M1R/sigma_z",
-                "VEPP/CCD/1M2L/sigma_x",
-                "VEPP/CCD/1M2L/sigma_z",
-                "VEPP/CCD/1M2R/sigma_x",
-                "VEPP/CCD/1M2R/sigma_z"),
-            100,
-            Range.of(0, 100),
-            3,
+                "VEPP/QUAD/1D1/MCur.1",
+                "VEPP/QUAD/1D1/Volt",
+                "VEPP/QUAD/1D2/MCur.1",
+                "VEPP/QUAD/1D2/Volt",
+                "VEPP/QUAD/1D3/MCur.1",
+                "VEPP/QUAD/1D3/Volt",
+                "VEPP/QUAD/1F1/MCur.1",
+                "VEPP/QUAD/1F1/Volt",
+                "VEPP/QUAD/1F2/MCur.1",
+                "VEPP/QUAD/1F2/Volt",
+                "VEPP/QUAD/1F3/MCur.1",
+                "VEPP/QUAD/1F3/Volt"),
+            10,
+            Range.of(0, 110),
+            10,
             new ConsumerProperties(new InetSocketAddress("172.16.1.110", 20041), 2048, 3000));
 
     DrumService.init(properties);
