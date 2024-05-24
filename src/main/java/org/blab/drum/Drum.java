@@ -10,8 +10,6 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.blab.drum.model.DrumProperties;
 import org.blab.drum.model.DrumService;
-import org.blab.drum.model.Range;
-import org.blab.vcas.consumer.ConsumerProperties;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,10 +42,9 @@ public class Drum extends Application {
                 "VEPP/QUAD/1F2/Volt",
                 "VEPP/QUAD/1F3/MCur.1",
                 "VEPP/QUAD/1F3/Volt"),
+            100,
             10,
-            Range.of(0, 110),
-            10,
-            new ConsumerProperties(new InetSocketAddress("172.16.1.110", 20041), 2048, 3000));
+            new InetSocketAddress("172.16.1.110", 20041));
 
     DrumService.init(properties);
 

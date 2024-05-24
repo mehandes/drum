@@ -26,7 +26,7 @@ public class DrumService extends VcasService {
   private final Map<String, ChannelGroup> groups;
 
   private DrumService(DrumProperties properties) {
-    super(properties.consumerProperties());
+    super(properties.address());
 
     var pool = Executors.newScheduledThreadPool(1);
     groups = new HashMap<>();
@@ -48,7 +48,6 @@ public class DrumService extends VcasService {
                         new Channel(
                             channelName,
                             properties.channelHistorySize(),
-                            properties.valuesNormalRange(),
                             properties.channelStateUpdateDelay(),
                             pool));
             });

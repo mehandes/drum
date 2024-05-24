@@ -16,6 +16,8 @@ import org.blab.drum.model.DrumService;
 import org.blab.drum.model.VcasService;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DrumSceneController implements SceneController {
@@ -24,6 +26,8 @@ public class DrumSceneController implements SceneController {
   @FXML private Label vcasStatusLabel;
   @FXML private Circle vcasStatusIndicator;
   @FXML private GridPane grid;
+
+  private final Map<String, Stage> stages = new HashMap<>();
 
   public void bindDrumService(DrumService service) {
     bindVcasIndicators(service);
@@ -53,10 +57,15 @@ public class DrumSceneController implements SceneController {
     button.setOnMouseClicked(
         (event) -> {
           try {
-            Stage stage = new Stage();
-            stage.setTitle("Drum - " + group.getName());
-            stage.setScene(SceneController.newGroupScene(stage, group));
-            stage.show();
+            if (stages.containsKey(group.getName())) stages.get(group.getName()).toFront();
+            else {
+              Stage stage = new Stage();
+              stages.put(group.getName(), stage);
+              stage.setTitle("Drum - " + group.getName());
+              stage.setScene(SceneController.newGroupScene(stage, group));
+              stage.setOnCloseRequest((e) -> stages.remove(group.getName()));
+              stage.show();
+            }
           } catch (IOException e) {
             logger.fatal(e);
           }
@@ -87,7 +96,7 @@ public class DrumSceneController implements SceneController {
   private void updateButton(Button button, ChannelGroup group) {
     String title =
         button.getText().contains("(")
-            ? button.getText().substring(0, button.getText().indexOf("("))
+            ? button.getText().substring(0, button.getText().indexOf("(")).strip()
             : button.getText();
 
     button.setText(String.format("%s %s", title, getGroupReason(group)));

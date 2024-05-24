@@ -7,19 +7,25 @@ import javafx.collections.ObservableListBase;
 import java.util.*;
 
 public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E> {
+  private ObservableQueue<E> shadow;
+
   private final LinkedList<E> queue;
   private final int capacity;
-
-  private ObservableQueue<E> shadow;
 
   public ObservableQueue(int capacity) {
     this.queue = new LinkedList<>();
     this.capacity = capacity;
   }
 
+  @Override
+  public int size() {
+    return queue.size();
+  }
+
   public boolean isFull() {
     return queue.size() == capacity;
   }
+
 
   @Override
   public E get(int i) {
@@ -27,8 +33,13 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
   }
 
   @Override
-  public int size() {
-    return queue.size();
+  public E getFirst() {
+    return queue.getFirst();
+  }
+
+  @Override
+  public E getLast() {
+    return queue.getLast();
   }
 
   @Override
@@ -45,19 +56,6 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
   }
 
   @Override
-  public E remove() {
-    beginChange();
-
-    try {
-      E e = queue.remove();
-      nextRemove(0, e);
-      return e;
-    } finally {
-      endChange();
-    }
-  }
-
-  @Override
   public E poll() {
     beginChange();
 
@@ -66,26 +64,6 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
 
     endChange();
     return e;
-  }
-
-  @Override
-  public E element() {
-    return queue.element();
-  }
-
-  @Override
-  public E peek() {
-    return queue.peek();
-  }
-
-  @Override
-  public E getFirst() {
-    return queue.getFirst();
-  }
-
-  @Override
-  public E getLast() {
-    return queue.getLast();
   }
 
   public ObservableQueue<E> getShadow() {
@@ -108,5 +86,20 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
                         if (c.wasAdded()) c.getAddedSubList().forEach(shadow::offer);
                       }
                     }));
+  }
+
+  @Override
+  public E peek() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public E element() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public E remove() {
+    throw new UnsupportedOperationException();
   }
 }

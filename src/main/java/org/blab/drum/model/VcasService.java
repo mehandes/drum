@@ -5,8 +5,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.blab.vcas.consumer.Consumer;
-import org.blab.vcas.consumer.ConsumerProperties;
 import org.blab.vcas.consumer.VcasConsumer;
+
+import java.net.InetSocketAddress;
 
 public abstract class VcasService implements Consumer.Callback {
   private static final Logger logger = LogManager.getLogger(VcasService.class);
@@ -14,9 +15,9 @@ public abstract class VcasService implements Consumer.Callback {
   private final ObjectProperty<State> state;
   protected final Consumer eventConsumer;
 
-  public VcasService(ConsumerProperties properties) {
+  public VcasService(InetSocketAddress address) {
     this.state = new SimpleObjectProperty<>(State.DISCONNECTED);
-    eventConsumer = new VcasConsumer(properties, this);
+    eventConsumer = new VcasConsumer(address, this);
   }
 
   public ObjectProperty<State> getObservableVcasState() {

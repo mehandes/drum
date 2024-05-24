@@ -15,40 +15,38 @@ public class Channel {
 
   private final String name;
   private final ObjectProperty<State> state;
-  private final ObservableQueue<XYChart.Data<String, Number>> data;
-  private final Range normalRange;
+  private final NumericQueue data;
 
   private boolean isDataUpdated;
 
-  public Channel(
-      String name,
-      int historySize,
-      Range normalRange,
-      int updateDelay,
-      ScheduledExecutorService pool) {
+  public Channel(String name, int historySize, int updateDelay, ScheduledExecutorService pool) {
     this.name = name;
     this.state = new SimpleObjectProperty<>(State.IDLE);
-    this.data = new ObservableQueue<>(historySize);
-    this.normalRange = normalRange;
-
+    this.data = new NumericQueue(historySize);
     isDataUpdated = false;
 
     pool.scheduleAtFixedRate(this::updateState, updateDelay, updateDelay, TimeUnit.SECONDS);
   }
 
   public void addValue(Double value, String time) {
+    if (value > data.mean() + data.stdDev() * 3 || value < data.mean() - data.stdDev() * 3)
+      setState(State.CRITICAL);
+    else setState(State.NORMAL);
+
     isDataUpdated = true;
     data.offer(new XYChart.Data<>(time, value));
+  }
 
-    if (!normalRange.contains(value)) state.setValue(State.CRITICAL);
-    else state.setValue(State.NORMAL);
+  private void setState(State state) {
+    if (this.state.getValue().equals(state)) return;
+    this.state.setValue(state);
   }
 
   public String getName() {
     return name;
   }
 
-  public ObservableQueue<XYChart.Data<String, Number>> getObservableData() {
+  public NumericQueue getData() {
     return data;
   }
 
@@ -58,7 +56,10 @@ public class Channel {
 
   private void updateState() {
     if (isDataUpdated) isDataUpdated = false;
-    else state.setValue(State.IDLE);
+    else {
+      logger.error("IDLE");
+      state.setValue(State.IDLE);
+    }
   }
 
   public enum State {
