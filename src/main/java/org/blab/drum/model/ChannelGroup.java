@@ -2,20 +2,15 @@ package org.blab.drum.model;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Collection of related Channels with bounded states. */
 public class ChannelGroup {
-  private static final Logger logger = LogManager.getLogger(ChannelGroup.class);
-
   private final String name;
   private final ObjectProperty<State> state;
   private final Map<String, Channel> channels;
-  private final ReentrantLock lock;
+  private final ReentrantLock stateLock;
 
   private int criticalCount = 0;
   private int idleCount = 0;
@@ -24,22 +19,25 @@ public class ChannelGroup {
     this.name = name;
     this.channels = new HashMap<>();
     this.state = new SimpleObjectProperty<>(State.IDLE);
-    this.lock = new ReentrantLock();
+    this.stateLock = new ReentrantLock();
   }
 
-  public void addChannel(Channel channel) {
+  public void add(Channel channel) {
     if (channels.containsKey(channel.getName())) return;
-    channels.put(channel.getName(), channel);
 
-    if (channel.getObservableState().getValue().equals(Channel.State.IDLE)) idleCount++;
-    else if (channel.getObservableState().getValue().equals(Channel.State.CRITICAL))
-      criticalCount++;
+    channels.put(channel.getName(), channel);
+    syncChannelState(channel);
+  }
+
+  private void syncChannelState(Channel channel) {
+    if (channel.getState().getValue().equals(Channel.State.IDLE)) idleCount++;
+    else if (channel.getState().getValue().equals(Channel.State.CRITICAL)) criticalCount++;
 
     channel
-        .getObservableState()
+        .getState()
         .addListener(
             (obs, o, n) -> {
-              lock.lock();
+              stateLock.lock();
 
               switch (o) {
                 case CRITICAL -> criticalCount--;
@@ -55,9 +53,7 @@ public class ChannelGroup {
               else if (criticalCount >= idleCount) state.setValue(State.CRITICAL);
               else state.setValue(State.IDLE);
 
-              logger.debug("Group state: {}", state.getValue());
-
-              lock.unlock();
+              stateLock.unlock();
             });
   }
 
@@ -65,7 +61,7 @@ public class ChannelGroup {
     return name;
   }
 
-  public ObjectProperty<State> getObservableState() {
+  public ObjectProperty<State> getState() {
     return state;
   }
 
@@ -73,19 +69,19 @@ public class ChannelGroup {
     return channels;
   }
 
-  public Channel getChannelByName(String name) {
+  public Channel getChannel(String name) {
     return channels.get(name);
   }
 
   public List<Channel> getCriticalChannels() {
     return channels.values().stream()
-        .filter(c -> c.getObservableState().getValue().equals(Channel.State.CRITICAL))
+        .filter(c -> c.getState().getValue().equals(Channel.State.CRITICAL))
         .toList();
   }
 
   public List<Channel> getIdleChannels() {
     return channels.values().stream()
-        .filter(c -> c.getObservableState().getValue().equals(Channel.State.IDLE))
+        .filter(c -> c.getState().getValue().equals(Channel.State.IDLE))
         .toList();
   }
 

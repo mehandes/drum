@@ -8,6 +8,7 @@ module org.blab.drum {
   requires org.apache.logging.log4j.core;
   requires javafx.base;
   requires jdk.compiler;
+  requires com.google.gson;
 
   opens org.blab.drum to javafx.fxml;
 

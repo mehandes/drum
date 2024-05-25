@@ -8,12 +8,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.blab.drum.model.DrumProperties;
 import org.blab.drum.model.DrumService;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Set;
+import java.io.InputStreamReader;
 
 public class Drum extends Application {
   public static final String COLOR_GREEN = "#0EAD69";
@@ -28,28 +27,15 @@ public class Drum extends Application {
   @Override
   public void start(Stage stage) throws IOException {
     var properties =
-        new DrumProperties(
-            Set.of(
-                "VEPP/QUAD/1D1/MCur.1",
-                "VEPP/QUAD/1D1/Volt",
-                "VEPP/QUAD/1D2/MCur.1",
-                "VEPP/QUAD/1D2/Volt",
-                "VEPP/QUAD/1D3/MCur.1",
-                "VEPP/QUAD/1D3/Volt",
-                "VEPP/QUAD/1F1/MCur.1",
-                "VEPP/QUAD/1F1/Volt",
-                "VEPP/QUAD/1F2/MCur.1",
-                "VEPP/QUAD/1F2/Volt",
-                "VEPP/QUAD/1F3/MCur.1",
-                "VEPP/QUAD/1F3/Volt"),
-            100,
-            10,
-            new InetSocketAddress("172.16.1.110", 20041));
+        DrumProperties.load(
+            new InputStreamReader(
+                new FileInputStream(
+                    System.getProperty("user.home") + "/.config/drum/drum-default.json")));
 
     DrumService.init(properties);
 
     stage.setTitle("Drum");
-    stage.setScene(SceneController.newDrumScene(stage));
+    stage.setScene(SceneController.newDrumScene(stage, properties.gridWidth()));
     stage.show();
   }
 
@@ -58,7 +44,7 @@ public class Drum extends Application {
     Configuration config = ctx.getConfiguration();
     LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
 
-    loggerConfig.setLevel(Level.ALL);
+    loggerConfig.setLevel(Level.INFO);
     ctx.updateLoggers();
   }
 }

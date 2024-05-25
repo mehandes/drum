@@ -1,6 +1,5 @@
 package org.blab.vcas.consumer;
 
-import org.blab.vcas.MessageFormatException;
 import org.blab.vcas.UnknownServerException;
 import org.blab.vcas.UnknownTopicException;
 
@@ -8,11 +7,13 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class VcasConsumer extends ByteChannel implements Consumer {
   private final Callback callback;
   private final ExecutorService executor;
   private final Set<String> subscriptions;
+  private final ReentrantLock subscriptionLock;
 
   private boolean isClosed = false;
 
@@ -22,6 +23,7 @@ public class VcasConsumer extends ByteChannel implements Consumer {
     this.callback = callback;
     this.subscriptions = new HashSet<>();
     this.executor = Executors.newVirtualThreadPerTaskExecutor();
+    this.subscriptionLock = new ReentrantLock();
 
     start(address);
   }
@@ -48,8 +50,10 @@ public class VcasConsumer extends ByteChannel implements Consumer {
 
   @Override
   protected void onChannelConnected() {
+    subscriptionLock.lock();
     executor.submit(callback::onConnectionEstablished);
     subscriptions.forEach(this::subscribe);
+    subscriptionLock.unlock();
   }
 
   @Override
@@ -64,6 +68,7 @@ public class VcasConsumer extends ByteChannel implements Consumer {
 
   @Override
   public void subscribe(Set<String> topics) {
+    subscriptionLock.lock();
     if (isClosed) throw new IllegalStateException();
     topics.stream()
         .filter(t -> !subscriptions.contains(t))
@@ -72,6 +77,7 @@ public class VcasConsumer extends ByteChannel implements Consumer {
               subscriptions.add(t);
               subscribe(t);
             });
+    subscriptionLock.unlock();
   }
 
   @Override
@@ -81,6 +87,7 @@ public class VcasConsumer extends ByteChannel implements Consumer {
 
   @Override
   public void unsubscribe(Set<String> topics) {
+    subscriptionLock.lock();
     if (isClosed) throw new IllegalStateException();
     topics.stream()
         .filter(subscriptions::contains)
@@ -89,6 +96,7 @@ public class VcasConsumer extends ByteChannel implements Consumer {
               subscriptions.remove(t);
               unsubscribe(t);
             });
+    subscriptionLock.unlock();
   }
 
   private void subscribe(String topic) {

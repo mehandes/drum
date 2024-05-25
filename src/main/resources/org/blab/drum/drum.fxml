@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.Font?>
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
     <HBox fillHeight="false">
         <AnchorPane HBox.hgrow="ALWAYS">
-            <Label fx:id="vcasStatusLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Disconnected"
+            <Label fx:id="serverStatusLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Disconnected"
                    AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <graphic>
-                    <Circle fx:id="vcasStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK"
+                    <Circle fx:id="serverStatusIndicator" fill="#A41623" radius="10.0" stroke="BLACK"
                             strokeType="INSIDE"/>
                 </graphic>
                 <padding>
@@ -27,68 +23,9 @@
             </Label>
         </AnchorPane>
     </HBox>
-    <GridPane fx:id="grid" alignment="CENTER" gridLinesVisible="true" VBox.vgrow="ALWAYS">
-        <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        </rowConstraints>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0">
-            <Button id="VEPP/QUAD/1D1" mnemonicParsing="false" text="1D1" textFill="WHITE" AnchorPane.bottomAnchor="0.0"
-                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
-            <Button id="VEPP/QUAD/1D2" mnemonicParsing="false" text="1D2" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2">
-            <Button id="VEPP/QUAD/1D3" mnemonicParsing="false" text="1D3" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
-            <Button id="VEPP/QUAD/1F1" mnemonicParsing="false" text="1F1" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-            <Button id="VEPP/QUAD/1F2" mnemonicParsing="false" text="1F2" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-            <Button id="VEPP/QUAD/1F3" mnemonicParsing="false" text="1F3" textFill="WHITE"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                    AnchorPane.topAnchor="0.0">
-                <font>
-                    <Font size="16.0"/>
-                </font>
-            </Button>
-        </AnchorPane>
-    </GridPane>
+    <AnchorPane VBox.vgrow="ALWAYS">
+        <GridPane fx:id="groupsGrid" alignment="CENTER" gridLinesVisible="true" AnchorPane.bottomAnchor="0.0"
+                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        </GridPane>
+    </AnchorPane>
 </VBox>

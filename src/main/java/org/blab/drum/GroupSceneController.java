@@ -2,40 +2,71 @@ package org.blab.drum;
 
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
+import javafx.geometry.Side;
+import javafx.scene.chart.*;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.blab.drum.model.ChannelGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
+import javafx.util.Duration;
+import org.blab.drum.model.Channel;
 import org.blab.drum.model.DrumService;
 
 public class GroupSceneController implements SceneController {
-  private static final Logger logger = LogManager.getLogger(GroupSceneController.class);
-
   @FXML TabPane tabPane;
 
-  private final ChannelGroup group;
+  private final String groupName;
 
-  public GroupSceneController(ChannelGroup group) {
-    this.group = group;
+  public GroupSceneController(String groupName) {
+    this.groupName = groupName;
   }
 
   public void bindDrumService(DrumService drumService) {
-    tabPane
-        .getTabs()
-        .forEach(tab -> bindChart((LineChart<String, Number>) tab.getContent().lookup("#chart")));
+    var group = drumService.getGroups().get(groupName);
+    group.getChannels().forEach((n, c) -> tabPane.getTabs().add(createTabForChannel(c)));
   }
 
-  private void bindChart(LineChart<String, Number> chart) {
-    var channel = group.getChannelByName((String) chart.getUserData());
-    var data = new XYChart.Series<String, Number>();
+  private Tab createTabForChannel(Channel channel) {
+    return new Tab(channel.getName(), wrapChart(createChartForChannel(channel)));
+  }
 
-    data.setData(channel.getData().getShadow());
-    chart.getData().add(data);
+  private AnchorPane wrapChart(LineChart<String, Number> chart) {
+    var pane = new AnchorPane(chart);
 
-    data.getData()
+    AnchorPane.setTopAnchor(chart, 0.0);
+    AnchorPane.setLeftAnchor(chart, 0.0);
+    AnchorPane.setRightAnchor(chart, 0.0);
+    AnchorPane.setBottomAnchor(chart, 0.0);
+
+    return pane;
+  }
+
+  private LineChart<String, Number> createChartForChannel(Channel channel) {
+    final CategoryAxis xAxis = new CategoryAxis();
+    xAxis.setSide(Side.BOTTOM);
+    xAxis.setAnimated(false);
+    xAxis.setLabel("Time");
+
+    final NumberAxis yAxis = new NumberAxis();
+    yAxis.setSide(Side.LEFT);
+    yAxis.setAnimated(false);
+    yAxis.setAutoRanging(false);
+    yAxis.setLabel("Value");
+
+    final LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+    chart.setLegendVisible(false);
+    chart.setAxisSortingPolicy(LineChart.SortingPolicy.NONE);
+
+    bindChart(chart, channel);
+    return chart;
+  }
+
+  private void bindChart(LineChart<String, Number> chart, Channel channel) {
+    XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+    series.setData(channel.getData().getShadow());
+    series
+        .getData()
         .addListener(
             (ListChangeListener<XYChart.Data<String, Number>>)
                 c -> {
@@ -46,10 +77,22 @@ public class GroupSceneController implements SceneController {
 
                     yAxis.setLowerBound(min - (max - min) / 4);
                     yAxis.setUpperBound(max + (max - min) / 4);
-                    yAxis.setTickUnit((max - min) / 100);
+                    yAxis.setTickUnit((max - min) / 10);
+
+                    c.getList()
+                        .forEach(
+                            node -> {
+                              var tooltip =
+                                  new Tooltip(
+                                      String.format(
+                                          "%f\n%s",
+                                          node.getYValue().doubleValue(), node.getXValue()));
+                              tooltip.setShowDelay(Duration.ZERO);
+                              Tooltip.install(node.getNode(), tooltip);
+                            });
                   }
                 });
 
-    logger.debug("Chart bounded: {}", channel.getName());
+    chart.getData().add(series);
   }
 }

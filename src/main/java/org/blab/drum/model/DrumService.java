@@ -2,16 +2,17 @@ package org.blab.drum.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.blab.drum.DrumProperties;
 import org.blab.vcas.consumer.ConsumerEvent;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class DrumService extends VcasService {
   private static final Logger logger = LogManager.getLogger(DrumService.class);
+
   private static DrumService instance;
 
   public static void init(DrumProperties properties) {
@@ -26,37 +27,38 @@ public class DrumService extends VcasService {
   private final Map<String, ChannelGroup> groups;
 
   private DrumService(DrumProperties properties) {
-    super(properties.address());
+    super(properties.bootstrapServer().toAddress());
 
-    var pool = Executors.newScheduledThreadPool(1);
-    groups = new HashMap<>();
+    groups = new LinkedHashMap<>();
+
+    ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+    Set<String> subscriptions = new HashSet<>();
 
     properties
-        .topics()
+        .groups()
         .forEach(
-            t -> {
-              String groupName = getGroupNameFromTopic(t);
-              String channelName = getChannelNameFromTopic(t);
+            g -> {
+              groups.put(g, new ChannelGroup(g));
 
-              if (!groups.containsKey(groupName))
-                groups.put(groupName, new ChannelGroup(groupName));
+              properties
+                  .channels()
+                  .forEach(
+                      c -> {
+                        groups
+                            .get(g)
+                            .add(
+                                new Channel(
+                                    c,
+                                    properties.channelHistorySize(),
+                                    properties.channelStateUpdateDelayMs(),
+                                    properties.channelCriticalTimeoutMs(),
+                                    pool));
 
-              if (groups.get(groupName).getChannelByName(channelName) == null)
-                groups
-                    .get(groupName)
-                    .addChannel(
-                        new Channel(
-                            channelName,
-                            properties.channelHistorySize(),
-                            properties.channelStateUpdateDelay(),
-                            pool));
+                        subscriptions.add(String.format("%s/%s/%s", properties.namespace(), g, c));
+                      });
             });
 
-    eventConsumer.subscribe(properties.topics());
-  }
-
-  public ChannelGroup getGroupByName(String groupName) {
-    return groups.get(groupName);
+    eventConsumer.subscribe(subscriptions);
   }
 
   public Map<String, ChannelGroup> getGroups() {
@@ -66,21 +68,13 @@ public class DrumService extends VcasService {
   @Override
   public void onEvent(ConsumerEvent event) {
     groups
-        .get(getGroupNameFromTopic(event.topic()))
-        .getChannelByName(getChannelNameFromTopic(event.topic()))
+        .get(event.topic().split("/")[2])
+        .getChannel(event.topic().split("/")[3])
         .addValue(Double.parseDouble(event.value()), parseTimestamp(event.timestamp()));
   }
 
   private String parseTimestamp(Long timestamp) {
     return new SimpleDateFormat("HH:mm:ss").format(new Date(timestamp));
-  }
-
-  private String getGroupNameFromTopic(String topic) {
-    return topic.substring(0, topic.lastIndexOf('/'));
-  }
-
-  private String getChannelNameFromTopic(String topic) {
-    return topic.substring(topic.lastIndexOf('/') + 1);
   }
 
   @Override

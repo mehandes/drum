@@ -9,37 +9,65 @@ import javafx.scene.chart.XYChart;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/** Channel for single VCAS topic which controls state and data. */
 public class Channel {
-  private static final Logger logger = LogManager.getLogger(Channel.class);
-
+  private static final Logger log = LogManager.getLogger(Channel.class);
   private final String name;
   private final ObjectProperty<State> state;
   private final NumericQueue data;
+  private final ScheduledExecutorService pool;
+  private final int criticalTimeoutMs;
 
-  private boolean isDataUpdated;
+  private boolean isDataUpdated = false;
+  private boolean isCriticalTimeout = false;
 
-  public Channel(String name, int historySize, int updateDelay, ScheduledExecutorService pool) {
+  public Channel(
+      String name,
+      int historySize,
+      int stateUpdateDelayMs,
+      int criticalTimeoutMs,
+      ScheduledExecutorService pool) {
     this.name = name;
     this.state = new SimpleObjectProperty<>(State.IDLE);
     this.data = new NumericQueue(historySize);
-    isDataUpdated = false;
+    this.pool = pool;
+    this.criticalTimeoutMs = criticalTimeoutMs;
 
-    pool.scheduleAtFixedRate(this::updateState, updateDelay, updateDelay, TimeUnit.SECONDS);
+    pool.scheduleAtFixedRate(
+        () -> {
+          if (isDataUpdated) isDataUpdated = false;
+          else if (!isCriticalTimeout) updateState(State.IDLE);
+        },
+        stateUpdateDelayMs,
+        stateUpdateDelayMs,
+        TimeUnit.MILLISECONDS);
   }
 
   public void addValue(Double value, String time) {
-    if (value > data.mean() + data.stdDev() * 3 || value < data.mean() - data.stdDev() * 3)
-      setState(State.CRITICAL);
-    else setState(State.NORMAL);
+    if (!isCriticalTimeout)
+      if (isCritical(value)) setCritical();
+      else updateState(State.NORMAL);
 
     isDataUpdated = true;
     data.offer(new XYChart.Data<>(time, value));
   }
 
-  private void setState(State state) {
-    if (this.state.getValue().equals(state)) return;
-    this.state.setValue(state);
+  private void setCritical() {
+    updateState(State.CRITICAL);
+    isCriticalTimeout = true;
+    pool.schedule(
+        () -> {
+          isCriticalTimeout = false;
+        },
+        criticalTimeoutMs,
+        TimeUnit.MILLISECONDS);
+  }
+
+  private boolean isCritical(double v) {
+    return v > data.mean() + data.stdDev() * 3 || v < data.mean() - data.stdDev() * 3;
+  }
+
+  private void updateState(State state) {
+    if (!this.state.getValue().equals(state)) this.state.setValue(state);
   }
 
   public String getName() {
@@ -50,21 +78,13 @@ public class Channel {
     return data;
   }
 
-  public ObjectProperty<State> getObservableState() {
+  public ObjectProperty<State> getState() {
     return state;
-  }
-
-  private void updateState() {
-    if (isDataUpdated) isDataUpdated = false;
-    else {
-      logger.error("IDLE");
-      state.setValue(State.IDLE);
-    }
   }
 
   public enum State {
     NORMAL,
     CRITICAL,
-    IDLE;
+    IDLE
   }
 }

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
@@ -13,34 +9,6 @@
         <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
               AnchorPane.topAnchor="0.0">
             <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
-                <Tab text="Current">
-                    <AnchorPane>
-                        <LineChart id="chart" userData="MCur.1" AnchorPane.bottomAnchor="0.0"
-                                   AnchorPane.leftAnchor="0.0"
-                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <xAxis>
-                                <CategoryAxis animated="false" label="Time" side="BOTTOM"/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis animated="false" autoRanging="false" label="Value" side="LEFT"/>
-                            </yAxis>
-                        </LineChart>
-                    </AnchorPane>
-                </Tab>
-                <Tab text="Voltage">
-                    <AnchorPane>
-                        <LineChart id="chart" userData="Volt" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <xAxis>
-                                <CategoryAxis animated="false" label="Time" side="BOTTOM"/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis animated="false" autoRanging="false" label="Value" side="LEFT"/>
-                            </yAxis>
-                        </LineChart>
-                    </AnchorPane>
-
-                </Tab>
             </TabPane>
         </VBox>
     </AnchorPane>

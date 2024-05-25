@@ -26,7 +26,6 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
     return queue.size() == capacity;
   }
 
-
   @Override
   public E get(int i) {
     return queue.get(i);
@@ -72,7 +71,7 @@ public class ObservableQueue<E> extends ObservableListBase<E> implements Queue<E
   }
 
   private void createShadow() {
-    shadow = new ObservableQueue<E>(capacity);
+    shadow = new ObservableQueue<>(capacity);
     shadow.queue.addAll(this);
 
     this.addListener(
